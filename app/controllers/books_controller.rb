@@ -1,53 +1,77 @@
-  class BooksController < ApplicationController
+class BooksController < ApplicationController
 
-  #login
-  get '/login' do
-    if !logged_in?
-      erb :'users/login'
-    else
-      redirect to '/books'
-    end
-  end
-
-  post '/login' do
-    user = User.find_by(:email => params[:email])
-    if user && user.authenticate(params[:password])
-      session[:user_id] = user.id
-      redirect '/books'
-    else
-      redirect to '/signup'
-    end
-  end
-
-  #logout
-  get '/logout' do
+  #show user list of books
+  get '/books' do
     if logged_in?
-      session.destroy
-      redirect to '/login'
+      @user = current_user
+      @books = @user.books.all
+      erb :'books/index'
     else
       redirect to '/'
     end
   end
 
-  #signup
-  get '/signup' do
-    if !logged_in?
-      erb :'users/signup'
+  #create new book
+  get '/books/new' do
+    if logged_in?
+      erb :'books/new'
+    else
+      redirect to '/'
+    end
+  end
+
+  post '/books' do
+    if params[:title] == ""
+      redirect to '/books/new'
+    else
+      @book = current_user.books.create(title: params[:title], author: params[:author], length: params[:length], format: params[:format], favorite: params[:favorite])
+      redirect to "/books/#{@book.id}"
+    end
+  end
+
+  #show one book
+  get '/books/:id' do
+    @book = Book.find_by_id(params[:id])
+    if @book
+      if logged_in? && @book.user_id == current_user.id
+        erb :'/books/show'
+      else
+        redirect to '/books'
+      end
     else
       redirect to '/books'
     end
   end
 
-  post '/signup' do
-    if params[:name] == "" || params[:email] == "" || params[:password] == ""
-      redirect to '/signup'
+  #edit a book
+  get '/books/:id/edit' do
+    @book = Book.find_by_id(params[:id])
+    if logged_in? && @book.user_id == current_user.id
+      erb :'/books/edit'
     else
-      @user = User.new(name: params[:name], email: params[:email], password: params[:password])
-      @user.save
-      session[:user_id] = @user.id
-      redirect to '/books'
+      redirect to '/'
     end
   end
 
+  patch '/books/:id' do
+    if params[:title] == ""
+      redirect to "/books/#{params[:id]}/edit"
+    else
+      @book = Book.find_by_id(params[:id])
+      @book.update(title: params[:title], author: params[:author], length: params[:length], format: params[:format], favorite: params[:favorite])
+      redirect to "/books/#{params[:id]}"
+    end
+  end
+
+  #delete a book
+  delete '/books/:id/delete' do
+    @book = Book.find_by_id(params[:id])
+    if logged_in? && @book.user_id == current_user.id
+      @book.delete
+      redirect to '/books'
+    else
+      redirect to '/books'
+    end
+  end
 
 end
