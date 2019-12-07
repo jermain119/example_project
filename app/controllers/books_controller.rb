@@ -1,4 +1,4 @@
-  class UsersController < ApplicationController
+  class BooksController < ApplicationController
 
   #login
   get '/login' do
