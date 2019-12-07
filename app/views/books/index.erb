@@ -1,0 +1,9 @@
+<div class="container">
+  <h3>Welcome, <%=@user.name%>! You've read these books: </h3>
+  <div class="booklist list-group">
+    <% @books.each_with_index do |book, index| %>
+    <a href="/books/<%= book.id %>" class="book list-group-item"><strong><%= index + 1%>.</strong> &emsp; <%=book.title%></a>
+    <% end %>
+  </div>
+  <a href="/books/new"><button type="submit" class="btn btn-primary btn-home" id="btn-main">Add Book</button></a>
+</div>
